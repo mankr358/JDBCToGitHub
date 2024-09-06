@@ -18,7 +18,8 @@ public class Main {
             Connection connection = DriverManager.getConnection(url,username,password);
             Statement statement = connection.createStatement();
            // String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %o, %f)","Rhaul", 23, 74.5);
-            String query = String.format("UPDATE students SET marks = %f WHERE id = %d", 89.7,2);
+           // String query = String.format("UPDATE students SET marks = %f WHERE id = %d", 89.7,2);
+            String query = String.format("DELETE FROM students WHERE ID = 2");
 
             // String query = "select * from students";
             //this is used for retrival data but if check for update; and hold the data by ResultSet
