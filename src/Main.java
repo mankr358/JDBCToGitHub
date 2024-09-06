@@ -17,7 +17,9 @@ public class Main {
         }
         try{
             Connection connection = DriverManager.getConnection(url,username,password);
-            Statement statement = connection.createStatement();
+           // Statement statement = connection.createStatement();
+            String query = "INSERT INTO students(name, age, marks) VALUES(?,?,?)";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
             Scanner sc = new Scanner(System.in);
             while(true){
                 System.out.print("Enter The Name: ");
@@ -28,14 +30,20 @@ public class Main {
                 double marks = sc.nextDouble();
                 System.out.print("Enter more Data(Y/N): ");
                 String choice = sc.next();
+                preparedStatement.setString(1,name);
+                preparedStatement.setInt(2,age);
+                preparedStatement.setDouble(3,marks);
+
                // String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %d,%f)",name,age,marks);
-                String query = "INSERT INTO students(name, age, marks) VALUES(?,?,?)";
-                statement.addBatch(query);
+                //String query = "INSERT INTO students(name, age, marks) VALUES(?,?,?)";
+                //statement.addBatch(query);
+                preparedStatement.addBatch();
                 if(choice.toUpperCase().equals("N")){
                     break;
                 }
             }
-            int[] arr = statement.executeBatch();
+           // int[] arr = statement.executeBatch();
+            int[] arr = preparedStatement.executeBatch();
 for(int i = 0; i< arr.length; i++){
     if(arr[i] ==0){
         System.out.println("Query; "+i+" not executed Successfully");
