@@ -19,16 +19,16 @@ public class Main {
             Statement statement = connection.createStatement();
            // String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %o, %f)","Rhaul", 23, 74.5);
            // String query = String.format("UPDATE students SET marks = %f WHERE id = %d", 89.7,2);
-            String query = String.format("DELETE FROM students WHERE ID = 2");
+            String query = "DELETE FROM students WHERE ID = 2";
 
             // String query = "select * from students";
             //this is used for retrival data but if check for update; and hold the data by ResultSet
 //            ResultSet resultSet = statement.executeQuery(query);
-            int reowsAffected  = statement.executeUpdate(query);
-            if(reowsAffected > 0){
-                System.out.println("Data Updatad Successfully");
+            int rowsAffected  = statement.executeUpdate(query);
+            if(rowsAffected > 0){
+                System.out.println("Deleted Successfully");
             }else{
-                System.out.println("Data Not Updated!");
+                System.out.println(" Not Deleted!");
             }
 //            while(resultSet.next()){
 //                int id = resultSet.getInt("id");
@@ -43,7 +43,7 @@ public class Main {
 
 
         }catch(SQLException e){
-
+            System.out.println(e.getMessage());
         }
     }
 }
