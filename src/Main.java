@@ -17,15 +17,17 @@ public class Main {
         try{
             Connection connection = DriverManager.getConnection(url,username,password);
             Statement statement = connection.createStatement();
-            String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %o, %f)","Rhaul", 23, 74.5);
-           // String query = "select * from students";
+           // String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %o, %f)","Rhaul", 23, 74.5);
+            String query = String.format("UPDATE students SET marks = %f WHERE id = %d", 89.7,2);
+
+            // String query = "select * from students";
             //this is used for retrival data but if check for update; and hold the data by ResultSet
 //            ResultSet resultSet = statement.executeQuery(query);
             int reowsAffected  = statement.executeUpdate(query);
             if(reowsAffected > 0){
-                System.out.println("Data Inserted Successfully");
+                System.out.println("Data Updatad Successfully");
             }else{
-                System.out.println("Data Not Inserted!");
+                System.out.println("Data Not Updated!");
             }
 //            while(resultSet.next()){
 //                int id = resultSet.getInt("id");
