@@ -1,103 +1,76 @@
 import java.sql.*;
 import java.util.Scanner;
 
-import static java.lang.Class.forName;
-
 public class Main {
-    private static final String url = "jdbc:mysql://localhost:3306/mydb";
-
+    private static final String url = "jdbc:mysql://localhost:3306/lenden";
     private static final String username = "root";
     private static final String password = "M1n8shkum1r@#";
 
     public static void main(String[] args) {
-        try{
+        try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-        }catch(ClassNotFoundException e){
+        } catch (ClassNotFoundException e) {
             System.out.println(e.getMessage());
         }
-        try{
-            Connection connection = DriverManager.getConnection(url,username,password);
-           // Statement statement = connection.createStatement();
-            String query = "INSERT INTO students(name, age, marks) VALUES(?,?,?)";
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
+
+        try (Connection connection = DriverManager.getConnection(url, username, password)) {
+            connection.setAutoCommit(false);  // Turn off auto-commit
+
             Scanner sc = new Scanner(System.in);
-            while(true){
-                System.out.print("Enter The Name: ");
-                String name = sc.next();
-                System.out.print("Enter Age: ");
-                int age = sc.nextInt();
-                System.out.print("Enter Marks: ");
-                double marks = sc.nextDouble();
-                System.out.print("Enter more Data(Y/N): ");
-                String choice = sc.next();
-                preparedStatement.setString(1,name);
-                preparedStatement.setInt(2,age);
-                preparedStatement.setDouble(3,marks);
+            System.out.println("Enter Account no to debit from: ");
+            int account_number_debit = sc.nextInt();
+            System.out.println("Enter Amount: ");
+            double amount = sc.nextDouble();
 
-               // String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %d,%f)",name,age,marks);
-                //String query = "INSERT INTO students(name, age, marks) VALUES(?,?,?)";
-                //statement.addBatch(query);
-                preparedStatement.addBatch();
-                if(choice.toUpperCase().equals("N")){
-                    break;
+            // Check if sufficient balance is available
+            if (isSufficient(connection, account_number_debit, amount)) {
+                // If sufficient, perform the transaction
+                String debit_query = "UPDATE accounts SET balance = balance - ? WHERE account_number = ?";
+                String credit_query = "UPDATE accounts SET balance = balance + ? WHERE account_number = ?";
+
+                try (PreparedStatement debitPreparedStatement = connection.prepareStatement(debit_query);
+                     PreparedStatement creditPreparedStatement = connection.prepareStatement(credit_query)) {
+
+                    // Debit the account
+                    debitPreparedStatement.setDouble(1, amount);
+                    debitPreparedStatement.setInt(2, account_number_debit);
+                    debitPreparedStatement.executeUpdate();
+
+                    // Credit the account (e.g., to account number 102)
+                    creditPreparedStatement.setDouble(1, amount);
+                    creditPreparedStatement.setInt(2, 102);
+                    creditPreparedStatement.executeUpdate();
+
+                    // Commit the transaction if both updates succeed
+                    connection.commit();
+                    System.out.println("Transaction successfully completed.");
+                } catch (SQLException e) {
+                    // If any update fails, rollback the transaction
+                    connection.rollback();
+                    System.out.println("Transaction failed: " + e.getMessage());
                 }
+            } else {
+                System.out.println("Insufficient balance, transaction cannot be completed.");
             }
-           // int[] arr = statement.executeBatch();
-            int[] arr = preparedStatement.executeBatch();
-for(int i = 0; i< arr.length; i++){
-    if(arr[i] ==0){
-        System.out.println("Query; "+i+" not executed Successfully");
-    }
-}
-            //Statement statement = connection.createStatement();
-            //String query = "INSERT INTO students(name, age, marks) VALUES(?,?,?)";
-           // String query =  "SELECT marks FROM students WHERE id = ?";
-           // String query = "UPDATE students SET marks = ? WHERE ID = ?";
-
-             // String query = String.format("INSERT INTO students(name, age, marks) VALUES('%s', %o, %f)","Rhaul", 23, 74.5);
-           // String query = String.format("UPDATE students SET marks = %f WHERE id = %d", 89.7,2);
-          //  String query = "DELETE FROM students WHERE ID = 2";
-       //     PreparedStatement preparedStatement = connection.prepareStatement(query);
-//            preparedStatement.setString(1, "Ankita");
-//            preparedStatement.setInt(2,25);
-//            preparedStatement.setDouble(3,84.7);
-//            preparedStatement.setInt(1,1);
-//            ResultSet resultSet = preparedStatement.executeQuery();
-//            if(resultSet.next()){
-//                double marks = resultSet.getDouble("marks");
-//                System.out.println("Marsks: " + marks);
-//            }else{
-//                System.out.println("Marks Not found: ");
-//            }
-//            preparedStatement.setDouble(1,87.5);
-//            preparedStatement.setInt(2,3);
-
-            // String query = "select * from students";
-            //this is used for retrival data but if check for update; and hold the data by ResultSet
-//            ResultSet resultSet = statement.executeQuery(query);
-           // int rowsAffected  = statement.executeUpdate(query);
-
-//            int rowsAffected = preparedStatement.executeUpdate();
-//            if(rowsAffected > 0){
-//                System.out.println("Data Inserted Successfully");
-//            }else{
-//                System.out.println(" Data Not Inserted");
-//            }
-
-//            while(resultSet.next()){
-//                int id = resultSet.getInt("id");
-//                String name = resultSet.getString("name");
-//                int age = resultSet.getInt("age");
-//                double marks = resultSet.getDouble("marks");
-//                System.out.println("ID: " +id );
-//                System.out.println("NAME: " + name);
-//                System.out.println("AGE: " +age);
-//                System.out.println("MARKS" + marks);
-//            }
-
-
-        }catch(SQLException e){
+        } catch (SQLException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    static boolean isSufficient(Connection connection, int account_number, double amount) {
+        try {
+            String query = "SELECT balance FROM accounts WHERE account_number = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            preparedStatement.setInt(1, account_number);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            if (resultSet.next()) {
+                double current_balance = resultSet.getDouble("balance");
+                return amount <= current_balance;  // Return true if sufficient balance
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return false;
     }
 }
